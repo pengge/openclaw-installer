@@ -1,0 +1,97 @@
+name: Build OpenClaw Installer (Static x64)
+
+on:
+  push:
+    branches: [ main, master ]
+    tags:
+      - 'v*'
+  pull_request:
+    branches: [ main, master ]
+  workflow_dispatch:
+
+jobs:
+  build-windows:
+    name: Static Build - Windows x64
+    runs-on: windows-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup MSVC (Visual Studio Build Tools)
+        uses: microsoft/setup-msbuild@v2
+
+      - name: Add MSVC to PATH
+        uses: ilammy/msvc-dev-cmd@v1
+        with:
+          arch: x64
+
+      - name: Build static binary
+        shell: cmd
+        run: |
+          cl.exe ^
+            /nologo ^
+            /W3 ^
+            /O2 ^
+            /EHsc ^
+            /MT ^
+            /DUNICODE ^
+            /D_UNICODE ^
+            /D_CRT_SECURE_NO_WARNINGS ^
+            /Feoutput\openclaw-installer.exe ^
+            src\main.cpp ^
+            /link ^
+            /MACHINE:X64 ^
+            /SUBSYSTEM:CONSOLE ^
+            /LTCG ^
+            kernel32.lib ^
+            user32.lib ^
+            shell32.lib ^
+            advapi32.lib ^
+            wininet.lib ^
+            shlwapi.lib ^
+            ole32.lib
+
+      - name: Verify binary
+        shell: cmd
+        run: |
+          dir output\
+          echo Build complete!
+
+      - name: Upload artifact (every build)
+        uses: actions/upload-artifact@v4
+        with:
+          name: openclaw-installer-x64
+          path: output/openclaw-installer.exe
+          retention-days: 30
+
+      - name: Create Release (on tag push)
+        if: startsWith(github.ref, 'refs/tags/v')
+        uses: softprops/action-gh-release@v2
+        with:
+          files: output/openclaw-installer.exe
+          name: OpenClaw 一键安装工具 ${{ github.ref_name }}
+          body: |
+            ## OpenClaw 一键安装工具 ${{ github.ref_name }}
+            
+            关注抖音：**低调吹个牛**
+            
+            ### 包含组件
+            - Node.js v22.22.1
+            - Git v2.53.0
+            - Python v3.14.3
+            - Microsoft VC++ Redist 2022
+            - OpenClaw (npm 最新版)
+            
+            ### 使用说明
+            1. 右键 `openclaw-installer.exe` → **以管理员身份运行**
+            2. 工具会自动检测已安装的软件，跳过无需重复安装的组件
+            3. 按提示操作即可完成全部安装
+            
+            ### 特性
+            - ✅ 静态编译，无需额外运行时
+            - ✅ 自动检测已安装版本，避免重复下载
+            - ✅ 支持 Git 下载源选择（直连/国内加速）
+            - ✅ 64位 Windows 专属优化
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
