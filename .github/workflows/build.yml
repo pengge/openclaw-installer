@@ -34,6 +34,7 @@ jobs:
             /O2 ^
             /EHsc ^
             /MT ^
+            /utf-8 ^
             /DUNICODE ^
             /D_UNICODE ^
             /D_CRT_SECURE_NO_WARNINGS ^
