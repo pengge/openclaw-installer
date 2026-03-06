@@ -20,33 +20,23 @@ if %errorlevel% neq 0 (
 )
 
 :: 创建输出目录
-if not exist output mkdir output
+if not exist output (
+    mkdir output
+    echo [信息] 已创建 output 目录
+)
 
 echo [编译] 正在静态编译 64位 EXE...
 echo.
 
 cl.exe ^
-    /nologo ^
-    /W3 ^
-    /O2 ^
-    /EHsc ^
-    /MT ^
-    /DUNICODE ^
-    /D_UNICODE ^
+    /nologo /W3 /O2 /EHsc /MT ^
     /D_CRT_SECURE_NO_WARNINGS ^
+    /Fosrc\ ^
     /Feoutput\openclaw-installer.exe ^
     src\main.cpp ^
-    /link ^
-    /MACHINE:X64 ^
-    /SUBSYSTEM:CONSOLE ^
-    /LTCG ^
-    kernel32.lib ^
-    user32.lib ^
-    shell32.lib ^
-    advapi32.lib ^
-    wininet.lib ^
-    shlwapi.lib ^
-    ole32.lib
+    /link /MACHINE:X64 /SUBSYSTEM:CONSOLE ^
+    kernel32.lib user32.lib shell32.lib ^
+    advapi32.lib wininet.lib shlwapi.lib ole32.lib
 
 if %errorlevel% equ 0 (
     echo.
