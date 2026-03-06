@@ -2,7 +2,7 @@
 
 > 关注抖音：**低调吹个牛**
 
-[![Build](https://github.com/pengge/openclaw-installer/actions/workflows/build.yml/badge.svg)](https://github.com/YOUR_USERNAME/openclaw-installer/actions/workflows/build.yml)
+[![Build](https://github.com/pengge/openclaw-installer/actions/workflows/build.yml/badge.svg)](https://github.com/pengge/openclaw-installer/actions/workflows/build.yml)
 
 ## 功能特性
 
@@ -26,7 +26,7 @@
 
 ### 使用预编译版本
 
-1. 前往 [Releases](https://github.com/YOUR_USERNAME/openclaw-installer/releases) 下载最新版
+1. 前往 [Releases](https://github.com/pengge/openclaw-installer/releases) 下载最新版
 2. 右键 `openclaw-installer.exe` → **以管理员身份运行**
 3. 按屏幕提示操作
 
