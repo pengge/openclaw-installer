@@ -25,9 +25,6 @@ jobs:
         uses: ilammy/msvc-dev-cmd@v1
         with:
           arch: x64
-      - name: Create output directory
-        shell: cmd
-        run: mkdir output
       - name: Build static binary
         shell: cmd
         run: |
