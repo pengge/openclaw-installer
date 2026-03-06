@@ -3,7 +3,7 @@ chcp 65001 >nul
 echo.
 echo  ==========================================
 echo    OpenClaw 安装工具 - 本地编译脚本
-echo    关注抖音: 低调吹个牛
+echo    关注抖音: 低调的吹个牛
 echo  ==========================================
 echo.
 
@@ -46,7 +46,7 @@ if %errorlevel% equ 0 (
     echo  ✓ 输出文件: output\openclaw-installer.exe
     for %%F in (output\openclaw-installer.exe) do echo  ✓ 文件大小: %%~zF 字节
     echo.
-    echo  关注抖音: 低调吹个牛
+    echo  关注抖音: 低调的吹个牛
 ) else (
     echo.
     echo  ✗ 编译失败，请检查错误信息

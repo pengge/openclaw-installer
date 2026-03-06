@@ -1,6 +1,6 @@
 # OpenClaw 一键安装工具
 
-> 关注抖音：**低调吹个牛**
+> 关注抖音：**低调的吹个牛**
 
 [![Build](https://github.com/pengge/openclaw-installer/actions/workflows/build.yml/badge.svg)](https://github.com/pengge/openclaw-installer/actions/workflows/build.yml)
 
@@ -78,4 +78,4 @@ openclaw-installer/
 - 使用 ShellExecuteEx + UAC 提权运行安装程序
 
 ---
-关注抖音：**低调吹个牛**
+关注抖音：**低调的吹个牛**

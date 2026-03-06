@@ -1,6 +1,6 @@
 /*
  * OpenClaw 一键安装工具
- * 关注抖音:低调吹个牛
+ * 关注抖音:低调的吹个牛
  * 
  * 静态编译 64位 Windows 安装器
  * 支持检测已安装软件版本，跳过重复安装
@@ -89,7 +89,7 @@ void PrintBanner() {
     wprintf(L"\n");
     wprintf(L"  ╔══════════════════════════════════════════════════════════════╗\n");
     wprintf(L"  ║         OpenClaw 一键安装工具  v%s                     ║\n", TOOL_VERSION);
-    wprintf(L"  ║              关注抖音: 低调吹个牛                            ║\n");
+    wprintf(L"  ║              关注抖音: 低调的吹个牛                            ║\n");
     wprintf(L"  ╚══════════════════════════════════════════════════════════════╝\n");
     wprintf(L"\n");
     SetColor(COLOR_RESET);
@@ -705,7 +705,7 @@ int wmain(int argc, wchar_t* argv[]) {
     g_hConsole = GetStdHandle(STD_OUTPUT_HANDLE);
 
     // 设置控制台标题
-    SetConsoleTitleW(L"OpenClaw 一键安装工具 - 关注抖音:低调吹个牛");
+    SetConsoleTitleW(L"OpenClaw 一键安装工具 - 关注抖音:低调的吹个牛");
 
     // 调整控制台窗口大小
     CONSOLE_SCREEN_BUFFER_INFO csbi;
@@ -760,7 +760,7 @@ int wmain(int argc, wchar_t* argv[]) {
     SetColor(COLOR_GREEN);
     wprintf(L"\n  ╔══════════════════════════════════════════════════════════════╗\n");
     wprintf(L"  ║            ★  所有组件安装完成！                            ║\n");
-    wprintf(L"  ║              关注抖音: 低调吹个牛                            ║\n");
+    wprintf(L"  ║              关注抖音: 低调的吹个牛                            ║\n");
     wprintf(L"  ╚══════════════════════════════════════════════════════════════╝\n");
     SetColor(COLOR_RESET);
     wprintf(L"\n  按 Enter 退出...\n");

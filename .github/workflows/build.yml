@@ -73,7 +73,7 @@ jobs:
           body: |
             ## OpenClaw 一键安装工具 ${{ github.ref_name }}
             
-            关注抖音：**低调吹个牛**
+            关注抖音：**低调的吹个牛**
             
             ### 包含组件
             - Node.js v22.22.1
