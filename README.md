@@ -2,7 +2,7 @@
 
 > 关注抖音：**低调吹个牛**
 
-[![Build](https://github.com/YOUR_USERNAME/openclaw-installer/actions/workflows/build.yml/badge.svg)](https://github.com/YOUR_USERNAME/openclaw-installer/actions/workflows/build.yml)
+[![Build](https://github.com/pengge/openclaw-installer/actions/workflows/build.yml/badge.svg)](https://github.com/YOUR_USERNAME/openclaw-installer/actions/workflows/build.yml)
 
 ## 功能特性
 
