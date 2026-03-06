@@ -1,10 +1,10 @@
 @echo off
 chcp 65001 >nul
 echo.
-echo  ╔══════════════════════════════════════════╗
-echo  ║  OpenClaw 安装工具 - 本地编译脚本        ║
-echo  ║  关注抖音: 低调吹个牛                    ║
-echo  ╚══════════════════════════════════════════╝
+echo  ==========================================
+echo    OpenClaw 安装工具 - 本地编译脚本
+echo    关注抖音: 低调吹个牛
+echo  ==========================================
 echo.
 
 :: 检查是否在 MSVC 环境中
@@ -30,6 +30,8 @@ echo.
 
 cl.exe ^
     /nologo /W3 /O2 /EHsc /MT ^
+    /utf-8 ^
+    /DUNICODE /D_UNICODE ^
     /D_CRT_SECURE_NO_WARNINGS ^
     /Fosrc\ ^
     /Feoutput\openclaw-installer.exe ^

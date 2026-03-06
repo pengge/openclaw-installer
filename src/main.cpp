@@ -24,6 +24,8 @@
 #include <string.h>
 #include <wchar.h>
 #include <stdarg.h>
+#include <io.h>
+#include <fcntl.h>
 
 #pragma comment(lib, "wininet.lib")
 #pragma comment(lib, "shell32.lib")
@@ -60,6 +62,7 @@
 // ============================================================
 static HANDLE g_hConsole = INVALID_HANDLE_VALUE;
 static wchar_t g_tempDir[MAX_PATH] = {0};
+static BOOL g_debugMode = FALSE;
 
 // ============================================================
 // 控制台工具函数
@@ -67,6 +70,18 @@ static wchar_t g_tempDir[MAX_PATH] = {0};
 void SetColor(int color) {
     if (g_hConsole != INVALID_HANDLE_VALUE)
         SetConsoleTextAttribute(g_hConsole, (WORD)color);
+}
+
+void PrintDebug(const wchar_t* fmt, ...) {
+    if (!g_debugMode) return;
+    SetColor(COLOR_MAGENTA);
+    wprintf(L"  [DBG] ");
+    SetColor(COLOR_RESET);
+    va_list args;
+    va_start(args, fmt);
+    vwprintf(fmt, args);
+    va_end(args);
+    wprintf(L"\n");
 }
 
 void PrintBanner() {
@@ -173,15 +188,16 @@ BOOL RunCommandGetOutput(const wchar_t* cmd, wchar_t* outBuf, DWORD outBufSize) 
     si.wShowWindow = SW_HIDE;
 
     PROCESS_INFORMATION pi = {0};
-    wchar_t cmdBuf[1024];
-    wcsncpy(cmdBuf, cmd, 1023);
+    // 用 cmd.exe /c 执行，支持 .cmd 脚本（npm、openclaw 等都是 .cmd 文件）
+    wchar_t cmdBuf[2048];
+    swprintf(cmdBuf, 2047, L"cmd.exe /c \"%s\"", cmd);
 
     BOOL ok = CreateProcessW(NULL, cmdBuf, NULL, NULL, TRUE,
                              CREATE_NO_WINDOW, NULL, NULL, &si, &pi);
     CloseHandle(hWritePipe);
     if (!ok) { CloseHandle(hReadPipe); return FALSE; }
 
-    char ansiOut[1024] = {0};
+    char ansiOut[8192] = {0};
     DWORD bytesRead = 0, total = 0;
     while (ReadFile(hReadPipe, ansiOut + total, sizeof(ansiOut) - total - 1, &bytesRead, NULL) && bytesRead > 0)
         total += bytesRead;
@@ -287,21 +303,76 @@ BOOL CheckVCRedist(wchar_t* versionOut, DWORD versionOutSize) {
 }
 
 // 检测 OpenClaw (npm全局包)
-BOOL CheckOpenClaw(wchar_t* versionOut, DWORD versionOutSize) {
-    wchar_t ver[256] = {0};
-    if (RunCommandGetOutput(L"openclaw --version", ver, 255)) {
-        wcsncpy(versionOut, ver, versionOutSize - 1);
-        return TRUE;
+// 从可能包含多行警告的输出中提取最后一个非空行
+static void ExtractLastLine(wchar_t* buf) {
+    wchar_t* lastLine = buf;
+    for (wchar_t* p = buf; *p; p++) {
+        if (*p == L'\n' && *(p + 1) != L'\0')
+            lastLine = p + 1;
     }
-    // npm list -g
-    if (RunCommandGetOutput(L"npm list -g openclaw --depth=0", ver, 255)) {
+    // 去除行末 \r
+    wchar_t* cr = wcschr(lastLine, L'\r');
+    if (cr) *cr = L'\0';
+    if (lastLine != buf)
+        wmemmove(buf, lastLine, wcslen(lastLine) + 1);
+}
+
+BOOL CheckOpenClaw(wchar_t* versionOut, DWORD versionOutSize) {
+    wchar_t ver[2048] = {0};
+
+    // 方法1：直接调用 openclaw（依赖 PATH）
+    BOOL ok = RunCommandGetOutput(L"openclaw --version", ver, 2047);
+    PrintDebug(L"openclaw --version => ok=%d raw=[%s]", ok, ok ? ver : L"(未找到)");
+    if (ok) {
+        ExtractLastLine(ver);
+        PrintDebug(L"ExtractLastLine => [%s]", ver);
+        if (*ver) {
+            wcsncpy(versionOut, ver, versionOutSize - 1);
+            return TRUE;
+        }
+    }
+
+    // 方法2：管理员运行时用户 PATH 可能缺失 npm 全局 bin，
+    //        通过 "npm config get prefix" 拿到真实安装路径再调用
+    wchar_t npmPrefix[MAX_PATH] = {0};
+    ok = RunCommandGetOutput(L"npm config get prefix", npmPrefix, MAX_PATH - 1);
+    PrintDebug(L"npm config get prefix => ok=%d raw=[%s]", ok, ok ? npmPrefix : L"(失败)");
+    if (ok && *npmPrefix) {
+        // 去掉末尾空白/换行
+        for (int i = (int)wcslen(npmPrefix) - 1; i >= 0; i--) {
+            if (npmPrefix[i] <= L' ') npmPrefix[i] = 0;
+            else break;
+        }
+        wchar_t clawCmd[MAX_PATH + 32];
+        swprintf(clawCmd, MAX_PATH + 31, L"\"%s\\openclaw.cmd\" --version", npmPrefix);
+        PrintDebug(L"尝试完整路径: %s", clawCmd);
+        ver[0] = 0;
+        ok = RunCommandGetOutput(clawCmd, ver, 2047);
+        PrintDebug(L"完整路径结果 => ok=%d raw=[%s]", ok, ok ? ver : L"(失败)");
+        if (ok) {
+            ExtractLastLine(ver);
+            if (*ver) {
+                wcsncpy(versionOut, ver, versionOutSize - 1);
+                return TRUE;
+            }
+        }
+    }
+
+    // 方法3：npm list -g
+    ver[0] = 0;
+    ok = RunCommandGetOutput(L"npm list -g openclaw --depth=0", ver, 2047);
+    PrintDebug(L"npm list -g => ok=%d raw=[%s]", ok, ok ? ver : L"(失败)");
+    if (ok) {
         wchar_t* p = wcsstr(ver, L"openclaw@");
         if (p) {
             p += 9;
+            wchar_t* end = wcspbrk(p, L"\r\n");
+            if (end) *end = L'\0';
             wcsncpy(versionOut, p, versionOutSize - 1);
             return TRUE;
         }
     }
+
     return FALSE;
 }
 
@@ -622,10 +693,16 @@ void PrintPreCheckReport() {
 // 主函数
 // ============================================================
 int wmain(int argc, wchar_t* argv[]) {
-    // 设置控制台
+    // 解析命令行参数
+    for (int i = 1; i < argc; i++) {
+        if (wcscmp(argv[i], L"--debug") == 0 || wcscmp(argv[i], L"/debug") == 0)
+            g_debugMode = TRUE;
+    }
+
+    // 设置控制台 —— 使用 UTF-16 宽字符模式，彻底绕过代码页限制
+    _setmode(_fileno(stdout), _O_U16TEXT);
+    _setmode(_fileno(stdin),  _O_U16TEXT);
     g_hConsole = GetStdHandle(STD_OUTPUT_HANDLE);
-    SetConsoleOutputCP(CP_UTF8);
-    SetConsoleCP(CP_UTF8);
 
     // 设置控制台标题
     SetConsoleTitleW(L"OpenClaw 一键安装工具 - 关注抖音:低调吹个牛");
@@ -682,7 +759,7 @@ int wmain(int argc, wchar_t* argv[]) {
     // 完成
     SetColor(COLOR_GREEN);
     wprintf(L"\n  ╔══════════════════════════════════════════════════════════════╗\n");
-    wprintf(L"  ║              🎉  所有组件安装完成！                          ║\n");
+    wprintf(L"  ║            ★  所有组件安装完成！                            ║\n");
     wprintf(L"  ║              关注抖音: 低调吹个牛                            ║\n");
     wprintf(L"  ╚══════════════════════════════════════════════════════════════╝\n");
     SetColor(COLOR_RESET);
