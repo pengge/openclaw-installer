@@ -653,9 +653,9 @@ void Step6_OpenClaw() {
 }
 
 // ============================================================
-// 打印安装前检测报告
+// 打印安装前检测报告，返回 TRUE 表示全部组件已安装
 // ============================================================
-void PrintPreCheckReport() {
+BOOL PrintPreCheckReport() {
     SetColor(COLOR_YELLOW);
     wprintf(L"\n  ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n");
     wprintf(L"  系统检测报告\n");
@@ -674,10 +674,12 @@ void PrintPreCheckReport() {
     typedef BOOL(*CheckFunc)(wchar_t*, DWORD);
     CheckFunc checks[] = {CheckNodeJS, CheckGit, CheckPython, CheckVCRedist, CheckOpenClaw};
 
+    int installedCount = 0;
     for (int i = 0; i < 5; i++) {
         ver[0] = 0;
         BOOL installed = checks[i](ver, 255);
         if (installed) {
+            installedCount++;
             SetColor(COLOR_GREEN);
             wprintf(L"  ✓ %-20s 已安装  版本: %s\n", items[i][0], ver);
         } else {
@@ -687,6 +689,7 @@ void PrintPreCheckReport() {
     }
     SetColor(COLOR_RESET);
     wprintf(L"\n");
+    return (installedCount == 5);
 }
 
 // ============================================================
@@ -740,7 +743,20 @@ int wmain(int argc, wchar_t* argv[]) {
     PrintInfo(L"临时文件目录: %s", g_tempDir);
 
     // 预检测
-    PrintPreCheckReport();
+    BOOL allInstalled = PrintPreCheckReport();
+
+    if (allInstalled) {
+        // 全部已安装，无需任何操作
+        SetColor(COLOR_GREEN);
+        wprintf(L"  ╔══════════════════════════════════════════════════════════════╗\n");
+        wprintf(L"  ║       ✓  所有组件均已安装，无需重复安装！                   ║\n");
+        wprintf(L"  ║              关注抖音: 低调的吹个牛                            ║\n");
+        wprintf(L"  ╚══════════════════════════════════════════════════════════════╝\n");
+        SetColor(COLOR_RESET);
+        wprintf(L"\n  按 Enter 退出...\n");
+        getwchar();
+        return 0;
+    }
 
     // 确认开始
     SetColor(COLOR_CYAN);
