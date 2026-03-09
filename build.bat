@@ -19,6 +19,14 @@ if %errorlevel% neq 0 (
     exit /b 1
 )
 
+:: 读取并显示当前 TOOL_VERSION，提醒开发者核对版本号
+for /f "tokens=3 delims= " %%V in ('findstr /r "^#define TOOL_VERSION" src\main.cpp') do set CURRENT_VER=%%~V
+:: 去掉首尾的 L" 和 "
+set CURRENT_VER=%CURRENT_VER:~2,-1%
+echo [版本] 当前 TOOL_VERSION = %CURRENT_VER%
+echo [提示] 发布前请确认版本号与 Git Tag 一致，例如: git tag v%CURRENT_VER%
+echo.
+
 :: 创建输出目录
 if not exist output (
     mkdir output
